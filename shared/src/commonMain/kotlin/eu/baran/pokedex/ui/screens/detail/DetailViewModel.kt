@@ -1,0 +1,30 @@
+package eu.baran.pokedex.ui.screens.detail
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import eu.baran.pokedex.data.PokedexRepo
+import eu.baran.pokedex.data.models.ui.PokemonDetailUi
+import eu.baran.pokedex.data.models.ui.toUiModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+
+class DetailViewModel(val pokedexRepo: PokedexRepo): ViewModel() {
+
+    data class State(
+        val pokemon: PokemonDetailUi? = null,
+    )
+
+    private val _uiState = MutableStateFlow(State())
+    val uiState = _uiState.asStateFlow()
+
+    fun loadPokemonDetail(id: Int) {
+        viewModelScope.launch {
+            val pokemonDetail = pokedexRepo.getPokemonDetail(id)
+            _uiState.update { currentState ->
+                currentState.copy(pokemon = pokemonDetail.toUiModel())
+            }
+        }
+    }
+}
