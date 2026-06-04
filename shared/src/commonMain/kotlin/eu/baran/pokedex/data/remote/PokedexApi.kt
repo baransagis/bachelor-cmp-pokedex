@@ -16,7 +16,7 @@ class PokedexApi(
             .body()
     }
 
-    suspend fun getPokemonDetails(id: Int): PokemonDetail {
+    suspend fun getPokemonDetail(id: Int): PokemonDetail {
         return client
             .get("${config.baseUrl}/pokemon/$id")
             .body()
