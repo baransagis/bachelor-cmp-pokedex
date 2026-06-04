@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import eu.baran.pokedex.data.PokedexRepo
 import eu.baran.pokedex.data.models.ui.PokemonDetailUi
-import eu.baran.pokedex.data.models.ui.toUiModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -23,7 +22,7 @@ class DetailViewModel(val pokedexRepo: PokedexRepo): ViewModel() {
         viewModelScope.launch {
             val pokemonDetail = pokedexRepo.getPokemonDetail(id)
             _uiState.update { currentState ->
-                currentState.copy(pokemon = pokemonDetail.toUiModel())
+                currentState.copy(pokemon = pokemonDetail)
             }
         }
     }
