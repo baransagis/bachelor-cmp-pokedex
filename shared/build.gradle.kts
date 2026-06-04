@@ -62,7 +62,6 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.content.negotiation)
             implementation(libs.ktor.json)
-            implementation(libs.ktor.logging)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
