@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,8 +32,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +40,8 @@ import cmppokedex.shared.generated.resources.detail_background
 import cmppokedex.shared.generated.resources.ic_arrow_back
 import eu.baran.pokedex.data.models.ui.PokemonBaseStatsUi
 import eu.baran.pokedex.data.models.ui.PokemonDetailUi
+import eu.baran.pokedex.ui.common.ErrorView
+import eu.baran.pokedex.ui.common.LoadingView
 import eu.baran.pokedex.ui.pokemonImageRes
 import eu.baran.pokedex.ui.pokemonTypeColor
 import eu.baran.pokedex.ui.screens.common.TypeChip
@@ -62,11 +61,16 @@ fun DetailScreen(
     LaunchedEffect(id) {
         viewModel.loadPokemonDetail(id)
     }
-    state.pokemon?.let {
-        DetailView(pokemon = it, onNavigateUp = onNavigateUp)
-    } ?: run {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+
+    if (state.isError) {
+        ErrorView(onRetry = {
+            viewModel.loadPokemonDetail(id)
+        })
+    } else {
+        state.pokemon?.let {
+            DetailView(pokemon = it, onNavigateUp = onNavigateUp)
+        } ?: run {
+            LoadingView()
         }
     }
 }
@@ -82,10 +86,7 @@ private fun DetailView(pokemon: PokemonDetailUi, onNavigateUp: () -> Unit) {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             painter = painterResource(Res.drawable.ic_arrow_back),
-                            modifier = Modifier.semantics {
-                                testTag = "detailNavigateUp"
-                            },
-                            contentDescription = "Zurück navigieren"
+                            contentDescription = null
                         )
                     }
                 }
@@ -262,9 +263,17 @@ private fun BaseStats(modifier: Modifier = Modifier, baseStats: PokemonBaseStats
         Spacer(Modifier.height(16.dp))
         BaseStatItem(label = "verteidigung", value = baseStats.defense, color = statColors.defense)
         Spacer(Modifier.height(16.dp))
-        BaseStatItem(label = "Spezial-Angriff", value = baseStats.specialAttack, color = statColors.specialAttack)
+        BaseStatItem(
+            label = "Spezial-Angriff",
+            value = baseStats.specialAttack,
+            color = statColors.specialAttack
+        )
         Spacer(Modifier.height(16.dp))
-        BaseStatItem(label = "Spezial-Verteidigung", value = baseStats.specialDefense, color = statColors.specialDefense)
+        BaseStatItem(
+            label = "Spezial-Verteidigung",
+            value = baseStats.specialDefense,
+            color = statColors.specialDefense
+        )
         Spacer(Modifier.height(16.dp))
         BaseStatItem(label = "Initiative", value = baseStats.speed, color = statColors.speed)
     }
@@ -287,7 +296,7 @@ private fun BaseStatItem(label: String, value: Int, color: Color) {
             )
         }
         Spacer(Modifier.height(6.dp))
-        val progress = remember(value) { (value/255f).coerceIn(0f, 1f) }
+        val progress = remember(value) { (value / 255f).coerceIn(0f, 1f) }
         LinearProgressIndicator(
             modifier = Modifier.fillMaxWidth(),
             progress = { progress },
