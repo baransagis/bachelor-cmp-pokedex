@@ -30,6 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.baran.pokedex.data.models.ui.PokemonListItemUi
+import eu.baran.pokedex.permissions.LocalNetworkAccessStatus
+import eu.baran.pokedex.permissions.rememberLocalNetworkAccessGate
 import eu.baran.pokedex.ui.pokemonImageRes
 import eu.baran.pokedex.ui.pokemonTypeColor
 import eu.baran.pokedex.ui.screens.common.TypeChip
@@ -43,17 +45,26 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun ListScreen(onPokemonClick: (id: Int) -> Unit, viewModel: ListViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val accessGate = rememberLocalNetworkAccessGate()
+
     LaunchedEffect(Unit) {
-        viewModel.loadPokemon()
+        accessGate.requestAccess()
     }
-    if (state.pokemonList.isNotEmpty()) {
-        ListView(pokemonList = state.pokemonList, onPokemonClick = onPokemonClick)
-    } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+
+    LaunchedEffect(accessGate.status) {
+        if (accessGate.status == LocalNetworkAccessStatus.Ready) {
+            viewModel.loadPokemon()
         }
     }
 
+    if (state.pokemonList.isNotEmpty()) {
+        ListView(
+            pokemonList = state.pokemonList,
+            onPokemonClick = onPokemonClick
+        )
+    } else {
+        LoadingView()
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +93,7 @@ private fun ListView(
                     types = pokemon.types,
                     onClick = onPokemonClick
                 )
-                if(index != pokemonList.lastIndex) {
+                if (index != pokemonList.lastIndex) {
                     HorizontalDivider(color = AppTheme.colors.extraColors.divider)
                 }
             }
@@ -141,5 +152,12 @@ private fun ListItem(
             painter = painterResource(pokemonImageRes(id)),
             contentDescription = null,
         )
+    }
+}
+
+@Composable
+private fun LoadingView() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator()
     }
 }
