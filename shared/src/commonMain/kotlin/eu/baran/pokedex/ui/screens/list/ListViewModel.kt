@@ -16,10 +16,11 @@ class ListViewModel(val pokedexRepo: PokedexRepo) : ViewModel() {
 
     data class State(
         val pokemonList: ImmutableList<PokemonListItemUi> = persistentListOf(),
+        val isError: Boolean = false,
     )
+
     private val _uiState = MutableStateFlow(State())
     val uiState = _uiState.asStateFlow()
-
 
     init {
         viewModelScope.launch {
@@ -33,7 +34,10 @@ class ListViewModel(val pokedexRepo: PokedexRepo) : ViewModel() {
 
     fun loadPokemon() {
         viewModelScope.launch {
-                pokedexRepo.loadPokemonListFromNetwork()
+            val result = pokedexRepo.loadPokemonListFromNetwork()
+            _uiState.update { currentState ->
+                currentState.copy(isError = result.isFailure)
+            }
         }
     }
 }

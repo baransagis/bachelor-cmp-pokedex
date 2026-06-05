@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import eu.baran.pokedex.data.models.ui.PokemonListItemUi
 import eu.baran.pokedex.permissions.LocalNetworkAccessStatus
 import eu.baran.pokedex.permissions.rememberLocalNetworkAccessGate
+import eu.baran.pokedex.ui.common.ErrorView
 import eu.baran.pokedex.ui.common.LoadingView
 import eu.baran.pokedex.ui.pokemonImageRes
 import eu.baran.pokedex.ui.pokemonTypeColor
@@ -56,13 +57,21 @@ fun ListScreen(onPokemonClick: (id: Int) -> Unit, viewModel: ListViewModel = koi
         }
     }
 
-    if (state.pokemonList.isNotEmpty()) {
-        ListView(
-            pokemonList = state.pokemonList,
-            onPokemonClick = onPokemonClick
-        )
-    } else {
-        LoadingView()
+    when {
+        state.pokemonList.isNotEmpty() -> {
+            ListView(
+                pokemonList = state.pokemonList,
+                onPokemonClick = onPokemonClick
+            )
+        }
+        state.isError -> {
+            ErrorView(onRetry = {
+                viewModel.loadPokemon()
+            })
+        }
+        else -> {
+            LoadingView()
+        }
     }
 }
 
