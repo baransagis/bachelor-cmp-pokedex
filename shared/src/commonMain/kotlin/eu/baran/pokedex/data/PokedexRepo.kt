@@ -19,7 +19,7 @@ import kotlinx.coroutines.withContext
 interface PokedexRepo {
     fun observePokemonList(): Flow<PersistentList<PokemonListItemUi>>
     suspend fun loadPokemonListFromNetwork()
-    suspend fun getPokemonDetail(id: Int): PokemonDetailUi
+    suspend fun getPokemonDetail(id: Int): PokemonDetailUi?
 }
 
 class PokedexRepoImpl(val pokedexApi: PokedexApi, val database: AppDatabase) : PokedexRepo {
@@ -34,13 +34,15 @@ class PokedexRepoImpl(val pokedexApi: PokedexApi, val database: AppDatabase) : P
         withContext(Dispatchers.IO) {
             // avoid network call if data is already persisted (for benchmarking)
             if (database.pokedexDao().getPokemonCount() == 0) {
-                val pokemon = pokedexApi.getPokemonList()
-                database.pokedexDao().insertPokemon(pokemon.map { it.toEntity() })
+                runCatching {
+                    val pokemon = pokedexApi.getPokemonList()
+                    database.pokedexDao().insertPokemon(pokemon.map { it.toEntity() })
+                }
             }
         }
     }
 
-    override suspend fun getPokemonDetail(id: Int): PokemonDetailUi  = withContext(Dispatchers.IO) {
-        pokedexApi.getPokemonDetail(id = id).toUiModel()
+    override suspend fun getPokemonDetail(id: Int): PokemonDetailUi?  = withContext(Dispatchers.IO) {
+        runCatching { pokedexApi.getPokemonDetail(id = id).toUiModel() }.getOrNull()
     }
 }

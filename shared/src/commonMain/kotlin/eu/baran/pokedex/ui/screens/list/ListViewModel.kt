@@ -33,9 +33,7 @@ class ListViewModel(val pokedexRepo: PokedexRepo) : ViewModel() {
 
     fun loadPokemon() {
         viewModelScope.launch {
-            runCatching {
                 pokedexRepo.loadPokemonListFromNetwork()
-            }
         }
     }
 }
