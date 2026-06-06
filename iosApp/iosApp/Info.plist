@@ -4,7 +4,5 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>This app needs local network access to reach the Pokemon mock server on your LAN.</string>
 </dict>
 </plist>
